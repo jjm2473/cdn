@@ -1,0 +1,32 @@
+name: GC
+
+on:
+  watch:
+    types: [started]
+  schedule:
+    - cron:  '1 22 * * SUN'
+
+env:
+  RESET_COMMIT: 5b0d8b5001ad22929e90ea8a83ab92d65a9ddba1
+
+jobs:
+  gc:
+    name: GC
+    if: github.event_name == 'schedule' || github.event.repository.owner.id == github.event.sender.id
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Reset
+        run: |
+          if [ `git rev-list ${RESET_COMMIT}..HEAD | wc -l | awk '{print $1}'` -gt 1 ]; then
+            git config --global user.name "Actions"
+            git config --global user.email "actions@github.com"
+            git reset --soft $RESET_COMMIT
+            git add --all
+            git commit -m 'reset'
+            git push -f
+          fi
+

@@ -1,0 +1,21 @@
+name: Check Size
+
+on:
+  watch:
+    types: [started]
+  schedule:
+    - cron:  '1 22 * * *'
+
+jobs:
+  size:
+    name: Check Size
+    if: github.event_name == 'schedule' || github.event.repository.owner.id == github.event.sender.id
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check
+        run: |
+          find . '!' -path './.git/*' -size +45M -type f -exec echo "::warning file={}::Exceed 45M" ';'
+
